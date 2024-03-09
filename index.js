@@ -4,13 +4,38 @@
 // to use import and es6 ned "type": "module", in package.json
 import express from 'express'
 import cors from 'cors'
+import mongoose from 'mongoose'
+
+const password = process.argv[2]
+const url =
+  `mongodb+srv://fsopenuser:${password}@fsopen.dtzbuqi.mongodb.net/noteApp?retryWrites=true&w=majority&appName=fsopen`
+
+mongoose.set('strictQuery',false)
+mongoose.connect(url)
+
+const noteSchema = new mongoose.Schema({
+  content: String,
+  important: Boolean,
+})
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.static('dist'))
 
-let notes = [
+
+noteSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+const Note = mongoose.model('Note', noteSchema)
+
+
+/* let notes = [
     {
       id: 1,
       content: "HTML is easy",
@@ -26,14 +51,18 @@ let notes = [
       content: "GET and POST are the most important methods of HTTP protocol",
       important: true
     }
-  ]
+  ] */
 
-  app.get('/', (request, response) => {
+
+  /* app.get('/', (request, response) => {
     response.json(notes)
   })
-  
+  */
+
   app.get('/api/notes', (request, response) => {
-    response.json(notes)
+    Note.find({}).then(notes => {
+      response.json(notes)
+    })
   })
 
   app.get('/api/notes/:id', (request, response) => {
