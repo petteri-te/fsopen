@@ -1,63 +1,13 @@
-
-//const http = require('http')
-//import http from 'http'
-// to use import and es6 ned "type": "module", in package.json
+require('dotenv').config()
 import express from 'express'
 import cors from 'cors'
-import mongoose from 'mongoose'
-
-const password = process.argv[2]
-const url =
-  `mongodb+srv://fsopenuser:${password}@fsopen.dtzbuqi.mongodb.net/noteApp?retryWrites=true&w=majority&appName=fsopen`
-
-mongoose.set('strictQuery',false)
-mongoose.connect(url)
-
-const noteSchema = new mongoose.Schema({
-  content: String,
-  important: Boolean,
-})
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.static('dist'))
 
-
-noteSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-  }
-})
-
-const Note = mongoose.model('Note', noteSchema)
-
-
-/* let notes = [
-    {
-      id: 1,
-      content: "HTML is easy",
-      important: true
-    },
-    {
-      id: 2,
-      content: "Browser can execute only JavaScript",
-      important: false
-    },
-    {
-      id: 3,
-      content: "GET and POST are the most important methods of HTTP protocol",
-      important: true
-    }
-  ] */
-
-
-  /* app.get('/', (request, response) => {
-    response.json(notes)
-  })
-  */
+const Note = require('./models/note')
 
   app.get('/api/notes', (request, response) => {
     Note.find({}).then(notes => {
@@ -109,11 +59,6 @@ const Note = mongoose.model('Note', noteSchema)
   
     response.json(note)
   })
-  
-/* const app = http.createServer((request, response) => {
-  response.writeHead(200, { 'Content-Type': 'application/json' })
-  response.end(JSON.stringify(notes))
-}) */
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
