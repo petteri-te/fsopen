@@ -1,13 +1,15 @@
-require('dotenv').config()
+import dotenv from 'dotenv'
 import express from 'express'
 import cors from 'cors'
+
+dotenv.config()
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.static('dist'))
 
-const Note = require('./models/note')
+import Note from './models/note.js' 
 
   app.get('/api/notes', (request, response) => {
     Note.find({}).then(notes => {
