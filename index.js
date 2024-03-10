@@ -18,49 +18,41 @@ import Note from './models/note.js'
   })
 
   app.get('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const note = notes.find(note => note.id === id)
-
-    if (note) {
-        response.json(note)
-      } else {
-        response.status(404).end()
-      }
-      
+    Note.findById(request.params.id).then(note => {
+      response.json(note)
+    })
   })
-
-  app.delete('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id)
-    notes = notes.filter(note => note.id !== id)
   
-    response.status(204).end()
-  })
-  const generateId = () => {
-    const maxId = notes.length > 0
-      ? Math.max(...notes.map(n => n.id))
-      : 0
-    return maxId + 1
+  // DELETE a note by ID from mongodb
+app.delete('/api/notes/:id', async (request, response) => {
+  try {
+    await Note.findByIdAndDelete(request.params.id);
+    response.status(204).end();
+  } catch (error) {
+    response.status(500).json({ error: error.message });
   }
-  
-  app.post('/api/notes', (request, response) => {
-    const body = request.body
-  
-    if (!body.content) {
-      return response.status(400).json({ 
-        error: 'content missing' 
-      })
-    }
-  
-    const note = {
-      content: body.content,
-      important: Boolean(body.important) || false,
-      id: generateId(),
-    }
-  
-    notes = notes.concat(note)
-  
-    response.json(note)
-  })
+});
+
+// POST a new note to mongoDB
+app.post('/api/notes', async (request, response) => {
+  const body = request.body;
+
+  if (!body.content) {
+    return response.status(400).json({ error: 'Content missing' });
+  }
+
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+  });
+
+  try {
+    const savedNote = await note.save();
+    response.status(201).json(savedNote);
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
